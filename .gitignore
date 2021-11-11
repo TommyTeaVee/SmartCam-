@@ -19,7 +19,6 @@ testdata/
 
 *.db
 *.iml
-*.apk
 *.ap_
 
 local.properties
