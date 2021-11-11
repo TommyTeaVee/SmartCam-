@@ -3,7 +3,8 @@ Smartcam is an android app that enablews your smartphone to work like a High Def
 Enjoy access to hidden and advanced functionality like High Resolution, RAW format, HDR and Autostabalization
 Android, Google Play and the Google Play logo are trademarks of Google LLC.
 
-Features
+# Features
+
 Option to auto-level so your pictures are perfectly level no matter what.
 Expose your camera's functionality: support for scene modes, color effects, white balance, ISO, exposure compensation/lock, selfie with "screen flash", HD video and more.
 Handy remote controls: timer (with optional voice countdown), auto-repeat mode (with configurable delay).
