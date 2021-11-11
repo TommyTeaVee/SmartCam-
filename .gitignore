@@ -13,7 +13,6 @@ _saved/
 !.idea/inspectionProfiles
 
 build/
-app/release/
 gfx/
 testdata/
 
