@@ -62,10 +62,10 @@ public abstract class CameraController {
         public int max_zoom;
         public List<Integer> zoom_ratios;
         public boolean supports_face_detection;
-        public List<CameraController.Size> picture_sizes;
-        public List<CameraController.Size> video_sizes;
-        public List<CameraController.Size> video_sizes_high_speed; // may be null if high speed not supported
-        public List<CameraController.Size> preview_sizes;
+        public List<Size> picture_sizes;
+        public List<Size> video_sizes;
+        public List<Size> video_sizes_high_speed; // may be null if high speed not supported
+        public List<Size> preview_sizes;
         public List<String> supported_flash_values;
         public List<String> supported_focus_values;
         public float [] apertures; // may be null if not supported, else will have at least 2 values
@@ -153,7 +153,7 @@ public abstract class CameraController {
         private static final long serialVersionUID = 5802214721073718212L;
 
         @Override
-        public int compare(final CameraController.Size a, final CameraController.Size b) {
+        public int compare(final Size a, final Size b) {
             return b.width * b.height - a.width * a.height;
         }
     }
@@ -369,9 +369,9 @@ public abstract class CameraController {
     public abstract long getExposureTime();
     public abstract boolean setExposureTime(long exposure_time);
     public abstract void setAperture(float aperture);
-    public abstract CameraController.Size getPictureSize();
+    public abstract Size getPictureSize();
     public abstract void setPictureSize(int width, int height);
-    public abstract CameraController.Size getPreviewSize();
+    public abstract Size getPreviewSize();
     public abstract void setPreviewSize(int width, int height);
 
     // whether to take a burst of images, and if so, what type
@@ -519,11 +519,12 @@ public abstract class CameraController {
     public abstract void setLocationInfo(Location location);
     public abstract void removeLocationInfo();
     public abstract void enableShutterSound(boolean enabled);
-    public abstract boolean setFocusAndMeteringArea(List<CameraController.Area> areas);
+    public abstract boolean setFocusAndMeteringArea(List<Area> areas);
     public abstract void clearFocusAndMetering();
-    public abstract List<CameraController.Area> getFocusAreas();
-    public abstract List<CameraController.Area> getMeteringAreas();
+    public abstract List<Area> getFocusAreas();
+    public abstract List<Area> getMeteringAreas();
     public abstract boolean supportsAutoFocus();
+    public abstract boolean supportsMetering();
     public abstract boolean focusIsContinuous();
     public abstract boolean focusIsVideo();
     public abstract void reconnect() throws CameraControllerException;
@@ -541,7 +542,7 @@ public abstract class CameraController {
     public abstract void startPreview() throws CameraControllerException;
     public abstract void stopPreview();
     public abstract boolean startFaceDetection();
-    public abstract void setFaceDetectionListener(final CameraController.FaceDetectionListener listener);
+    public abstract void setFaceDetectionListener(final FaceDetectionListener listener);
 
     /**
      * @param cb Callback to be called when autofocus completes.
@@ -549,13 +550,13 @@ public abstract class CameraController {
      *                                       decision changes after autofocus has started (e.g., user initiates autofocus,
      *                                       then takes photo before autofocus has completed), use setCaptureFollowAutofocusHint().
      */
-    public abstract void autoFocus(final CameraController.AutoFocusCallback cb, boolean capture_follows_autofocus_hint);
+    public abstract void autoFocus(final AutoFocusCallback cb, boolean capture_follows_autofocus_hint);
     /** See autoFocus() for details - used to update the capture_follows_autofocus_hint setting.
      */
     public abstract void setCaptureFollowAutofocusHint(boolean capture_follows_autofocus_hint);
     public abstract void cancelAutoFocus();
     public abstract void setContinuousFocusMoveCallback(ContinuousFocusMoveCallback cb);
-    public abstract void takePicture(final CameraController.PictureCallback picture, final ErrorCallback error);
+    public abstract void takePicture(final PictureCallback picture, final ErrorCallback error);
     public abstract void setDisplayOrientation(int degrees);
     public abstract int getDisplayOrientation();
     public abstract int getCameraOrientation();

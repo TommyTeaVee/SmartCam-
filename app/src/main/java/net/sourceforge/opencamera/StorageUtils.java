@@ -127,12 +127,12 @@ public class StorageUtils {
                         Log.e(TAG, "Couldn't resolve given uri [2]: " + uri);
                 }
                 else {
-                    String file_path = c.getString(c.getColumnIndex(Images.Media.DATA));
-                    String file_name = c.getString(c.getColumnIndex(Images.Media.DISPLAY_NAME));
-                    String mime_type = c.getString(c.getColumnIndex(Images.Media.MIME_TYPE));
+                    String file_path = c.getString(c.getColumnIndexOrThrow(Images.Media.DATA));
+                    String file_name = c.getString(c.getColumnIndexOrThrow(Images.Media.DISPLAY_NAME));
+                    String mime_type = c.getString(c.getColumnIndexOrThrow(Images.Media.MIME_TYPE));
                     @SuppressLint("InlinedApi") // complains this constant only available on API 29 (even though it was available on older versions, but looks like it was moved?)
-                    long date_taken = c.getLong(c.getColumnIndex(Images.Media.DATE_TAKEN));
-                    long date_added = c.getLong(c.getColumnIndex(Images.Media.DATE_ADDED));
+                    long date_taken = c.getLong(c.getColumnIndexOrThrow(Images.Media.DATE_TAKEN));
+                    long date_added = c.getLong(c.getColumnIndexOrThrow(Images.Media.DATE_ADDED));
                     Log.d(TAG, "file_path: " + file_path);
                     Log.d(TAG, "file_name: " + file_name);
                     Log.d(TAG, "mime_type: " + mime_type);
@@ -206,7 +206,7 @@ public class StorageUtils {
         }
         // leave ORIENTATION for now - this doesn't seem to get inserted for JPEGs anyway (via MediaScannerConnection.scanFile())
         values.put(ImageColumns.DATA, file.getAbsolutePath());
-        //values.put(ImageColumns.DATA, "/storage/emulated/0/DCIM/SmatCam++/blah.dng");
+        //values.put(ImageColumns.DATA, "/storage/emulated/0/DCIM/OpenCamera/blah.dng");
         Uri uri = null;
         try {
     		uri = context.getContentResolver().insert(Images.Media.EXTERNAL_CONTENT_URI, values); 
@@ -331,7 +331,7 @@ public class StorageUtils {
     // only valid if !isUsingSAF()
     String getSaveLocation() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        return sharedPreferences.getString(PreferenceKeys.SaveLocationPreferenceKey, "SmatCam++");
+        return sharedPreferences.getString(PreferenceKeys.SaveLocationPreferenceKey, "OpenCamera");
     }
 
     // only valid if isUsingSAF()
@@ -500,7 +500,7 @@ public class StorageUtils {
             if( !is_folder ) {
                 final String id = DocumentsContract.getDocumentId(uri);
                 if( id.startsWith("raw:") ) {
-                    // unclear if this is needed for Open Camera, but on Vibrance HDR
+                    // unclear if this is needed for SmatCam++, but on Vibrance HDR
                     // on some devices (at least on a Chromebook), I've had reports of id being of the form
                     // "raw:/storage/emulated/0/Download/..."
                     String filename = id.replaceFirst("raw:", "");
@@ -569,7 +569,7 @@ public class StorageUtils {
     }
 
     private String getDataColumn(Uri uri, String selection, String [] selectionArgs) {
-        final String column = MediaStore.Images.ImageColumns.DATA;
+        final String column = ImageColumns.DATA;
         final String[] projection = {
                 column
         };
@@ -1377,7 +1377,7 @@ public class StorageUtils {
         Uri baseUri;
         switch( uri_type ) {
             case MEDIASTORE_IMAGES:
-                baseUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                baseUri = Images.Media.EXTERNAL_CONTENT_URI;
                 break;
             case MEDIASTORE_VIDEOS:
                 baseUri = Video.Media.EXTERNAL_CONTENT_URI;

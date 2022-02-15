@@ -4,7 +4,9 @@ import net.sourceforge.opencamera.cameracontroller.CameraController;
 import net.sourceforge.opencamera.preview.Preview;
 import net.sourceforge.opencamera.ui.ArraySeekBarPreference;
 import net.sourceforge.opencamera.ui.FolderChooserDialog;
+import net.sourceforge.opencamera.ui.MyEditTextPreference;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
@@ -41,6 +43,8 @@ import android.text.method.LinkMovementMethod;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -76,7 +80,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
      * opened when onDestroy() is called are closed.
      * Normally this shouldn't be needed - the settings is usually only closed by the user pressing Back,
      * which can only be done once any opened dialogs are also closed. But this is required if we want to
-     * programmatically close the settings - this is done in MainActivity.onNewIntent(), so that if Open Camera
+     * programmatically close the settings - this is done in MainActivity.onNewIntent(), so that if SmatCam++
      * is launched from the homescreen again when the settings was opened, we close the settings.
      * UPDATE: At the time of writing, we don't set android:launchMode="singleTask", so onNewIntent() is not called,
      * so this code isn't necessary - but there shouldn't be harm to leave it here for future use.
@@ -974,7 +978,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
                         return true;
                     }
                     else if( MainActivity.useScopedStorage() ) {
-                        // we can't use an EditTextPreference due to having to support non-scoped-storage, or when SAF is enabled...
+                        // we can't use an EditTextPreference (or MyEditTextPreference) due to having to support non-scoped-storage, or when SAF is enabled...
                         // anyhow, this means we can share code when called from gallery long-press anyway
                         AlertDialog.Builder alertDialog = main_activity.createSaveFolderDialog();
                         final AlertDialog alert = alertDialog.create();
@@ -1049,7 +1053,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
                         AlertDialog.Builder alertDialog = new AlertDialog.Builder(MyPreferenceFragment.this.getActivity());
                         alertDialog.setTitle(getActivity().getResources().getString(R.string.preference_calibrate_level));
                         alertDialog.setMessage(R.string.preference_calibrate_level_dialog);
-                        alertDialog.setPositiveButton(R.string.preference_calibrate_level_calibrate, new DialogInterface.OnClickListener() {
+                        alertDialog.setPositiveButton(R.string.preference_calibrate_level_calibrate, new OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 if( MyDebug.LOG )
                                     Log.d(TAG, "user clicked calibrate level");
@@ -1064,7 +1068,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
                                 }
                             }
                         });
-                        alertDialog.setNegativeButton(R.string.preference_calibrate_level_reset, new DialogInterface.OnClickListener() {
+                        alertDialog.setNegativeButton(R.string.preference_calibrate_level_reset, new OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 if( MyDebug.LOG )
                                     Log.d(TAG, "user clicked reset calibration level");
@@ -1135,7 +1139,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
                                 Log.d(TAG, "NameNotFoundException exception trying to get version number");
                             e.printStackTrace();
                         }
-                        about_string.append("Open Camera v");
+                        about_string.append("SmatCam++ v");
                         about_string.append(version);
                         about_string.append("\nCode: ");
                         about_string.append(version_code);
@@ -1439,7 +1443,10 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
 
                         // clickable text is only supported if we call setMovementMethod on the TextView - which means we need to create
                         // our own for the AlertDialog!
-                        TextView textView = new TextView(getActivity());
+                        @SuppressLint("InflateParams") // we add the view to the alert dialog in addTextViewForAlertDialog()
+                        final View dialog_view = LayoutInflater.from(getActivity()).inflate(R.layout.alertdialog_textview, null);
+                        final TextView textView = dialog_view.findViewById(R.id.text_view);
+
                         textView.setText(span);
                         textView.setMovementMethod(LinkMovementMethod.getInstance());
                         textView.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
@@ -1447,7 +1454,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
                         //alertDialog.setMessage(about_string);
 
                         alertDialog.setPositiveButton(android.R.string.ok, null);
-                        alertDialog.setNegativeButton(R.string.about_copy_to_clipboard, new DialogInterface.OnClickListener() {
+                        alertDialog.setNegativeButton(R.string.about_copy_to_clipboard, new OnClickListener() {
                             public void onClick(DialogInterface dialog, int id) {
                                 if( MyDebug.LOG )
                                     Log.d(TAG, "user clicked copy to clipboard");
@@ -1502,10 +1509,14 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
                         AlertDialog.Builder alertDialog = new AlertDialog.Builder(MyPreferenceFragment.this.getActivity());
                         alertDialog.setTitle(R.string.preference_save_settings_filename);
 
-                        final EditText editText = new EditText(getActivity());
+                        final View dialog_view = LayoutInflater.from(getActivity()).inflate(R.layout.alertdialog_edittext, null);
+                        final EditText editText = dialog_view.findViewById(R.id.edit_text);
+
+                        editText.setSingleLine();
                         // set hint instead of content description for EditText, see https://support.google.com/accessibility/android/answer/6378120
                         editText.setHint(getResources().getString(R.string.preference_save_settings_filename));
-                        alertDialog.setView(editText);
+
+                        alertDialog.setView(dialog_view);
 
                         final MainActivity main_activity = (MainActivity)MyPreferenceFragment.this.getActivity();
                         try {
@@ -1572,7 +1583,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
                         alertDialog.setIcon(android.R.drawable.ic_dialog_alert);
                         alertDialog.setTitle(R.string.preference_reset);
                         alertDialog.setMessage(R.string.preference_reset_question);
-                        alertDialog.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        alertDialog.setPositiveButton(android.R.string.yes, new OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 if( MyDebug.LOG )
@@ -1710,7 +1721,9 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
         Spanned span = Html.fromHtml(getActivity().getResources().getString(R.string.preference_privacy_policy_text));
         // clickable text is only supported if we call setMovementMethod on the TextView - which means we need to create
         // our own for the AlertDialog!
-        TextView textView = new TextView(getActivity());
+        @SuppressLint("InflateParams") // we add the view to the alert dialog in addTextViewForAlertDialog()
+        final View dialog_view = LayoutInflater.from(getActivity()).inflate(R.layout.alertdialog_textview, null);
+        final TextView textView = dialog_view.findViewById(R.id.text_view);
         textView.setText(span);
         textView.setMovementMethod(LinkMovementMethod.getInstance());
         textView.setTextAppearance(getActivity(), android.R.style.TextAppearance_Medium);
@@ -1718,7 +1731,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
         //alertDialog.setMessage(R.string.preference_privacy_policy_text);
 
         alertDialog.setPositiveButton(android.R.string.ok, null);
-        alertDialog.setNegativeButton(R.string.preference_privacy_policy_online, new DialogInterface.OnClickListener() {
+        alertDialog.setNegativeButton(R.string.preference_privacy_policy_online, new OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if( MyDebug.LOG )
@@ -1944,7 +1957,20 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
      */
     private void setSummary(String key) {
         Preference pref = findPreference(key);
+
+        //noinspection DuplicateCondition
         if( pref instanceof EditTextPreference ) {
+            /* We have a runtime check for using EditTextPreference - we don't want these due to importance of
+             * supporting the Google Play emoji policy (see comment in MyEditTextPreference.java) - and this
+             * helps guard against the risk of accidentally adding more EditTextPreferences in future.
+             * Once we've switched to using Android X Preference library, and hence safe to use EditTextPreference
+             * again, this code can be removed.
+             */
+            throw new RuntimeException("detected an EditTextPreference: " + key + " pref: " + pref);
+        }
+
+        //noinspection DuplicateCondition
+        if( pref instanceof EditTextPreference || pref instanceof MyEditTextPreference) {
             // %s only supported for ListPreference
             // we also display the usual summary if no preference value is set
             if( pref.getKey().equals("preference_exif_artist") ||
@@ -1958,8 +1984,18 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
                     default_value = "IMG_";
                 else if( pref.getKey().equals("preference_save_video_prefix") )
                     default_value = "VID_";
-                EditTextPreference editTextPref = (EditTextPreference)pref;
-                if( editTextPref.getText().equals(default_value) ) {
+
+                String current_value;
+                if( pref instanceof EditTextPreference ) {
+                    EditTextPreference editTextPref = (EditTextPreference)pref;
+                    current_value = editTextPref.getText();
+                }
+                else {
+                    MyEditTextPreference editTextPref = (MyEditTextPreference)pref;
+                    current_value = editTextPref.getText();
+                }
+
+                if( current_value.equals(default_value) ) {
                     switch (pref.getKey()) {
                         case "preference_exif_artist":
                             pref.setSummary(R.string.preference_exif_artist_summary);
@@ -1980,7 +2016,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
                 }
                 else {
                     // non-default value, so display the current value
-                    pref.setSummary(editTextPref.getText());
+                    pref.setSummary(current_value);
                 }
             }
         }
@@ -1993,7 +2029,7 @@ public class MyPreferenceFragment extends PreferenceFragment implements OnShared
         alertDialog.setIcon(android.R.drawable.ic_dialog_alert);
         alertDialog.setTitle(R.string.preference_restore_settings);
         alertDialog.setMessage(R.string.preference_restore_settings_question);
-        alertDialog.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+        alertDialog.setPositiveButton(android.R.string.yes, new OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if( MyDebug.LOG )

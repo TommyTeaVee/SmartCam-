@@ -180,7 +180,7 @@ public class CameraController2 extends CameraController {
     private float focus_bracketing_target_distance = 0.0f;
     private boolean focus_bracketing_add_infinity = false;
     // for BURSTTYPE_NORMAL:
-    private boolean burst_for_noise_reduction; // chooses number of burst images and other settings for Open Camera's noise reduction (NR) photo mode
+    private boolean burst_for_noise_reduction; // chooses number of burst images and other settings for SmatCam++'s noise reduction (NR) photo mode
     private boolean noise_reduction_low_light; // if burst_for_noise_reduction==true, whether to optimise for low light scenes
     private int burst_requested_n_images; // if burst_for_noise_reduction==false, this gives the number of images for the burst
     //for BURSTTYPE_CONTINUOUS:
@@ -2473,7 +2473,7 @@ public class CameraController2 extends CameraController {
         // REQUEST_AVAILABLE_CAPABILITIES_BURST_CAPTURE, but I had a user complain that NR mode at least had previously
         // (before 1.45) worked for them. It might be that this can still work, just not at 20fps.
         // So instead set to true for all LIMITED devices. Still keep block for LEGACY devices (which definitely shouldn't
-        // support fast burst - and which Open Camera never allowed with Camera2 before 1.45).
+        // support fast burst - and which SmatCam++ never allowed with Camera2 before 1.45).
         // Also may affect Samsung Galaxy A8(2018).
         camera_features.supports_burst = CameraControllerManager2.isHardwareLevelSupported(characteristics, CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_LIMITED);
 
@@ -2500,7 +2500,7 @@ public class CameraController2 extends CameraController {
 
         android.util.Size [] camera_picture_sizes = configs.getOutputSizes(ImageFormat.JPEG);
         camera_features.picture_sizes = new ArrayList<>();
-        if( android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M ) {
+        if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ) {
             android.util.Size [] camera_picture_sizes_hires = configs.getHighResolutionOutputSizes(ImageFormat.JPEG);
             if( camera_picture_sizes_hires != null ) {
                 for(android.util.Size camera_size : camera_picture_sizes_hires) {
@@ -2518,7 +2518,7 @@ public class CameraController2 extends CameraController {
                     if( !found ) {
                         if( MyDebug.LOG )
                             Log.d(TAG, "high resolution [non-burst] picture size: " + camera_size.getWidth() + " x " + camera_size.getHeight());
-                        CameraController.Size size = new CameraController.Size(camera_size.getWidth(), camera_size.getHeight());
+                        Size size = new Size(camera_size.getWidth(), camera_size.getHeight());
                         size.supports_burst = false;
                         camera_features.picture_sizes.add(size);
                     }
@@ -2534,12 +2534,12 @@ public class CameraController2 extends CameraController {
             for(android.util.Size camera_size : camera_picture_sizes) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "picture size: " + camera_size.getWidth() + " x " + camera_size.getHeight());
-                camera_features.picture_sizes.add(new CameraController.Size(camera_size.getWidth(), camera_size.getHeight()));
+                camera_features.picture_sizes.add(new Size(camera_size.getWidth(), camera_size.getHeight()));
             }
         }
         // sizes are usually already sorted from high to low, but sort just in case
         // note some devices do have sizes in a not fully sorted order (e.g., Nokia 8)
-        Collections.sort(camera_features.picture_sizes, new CameraController.SizeSorter());
+        Collections.sort(camera_features.picture_sizes, new SizeSorter());
         // test high resolution modes not supporting burst:
         //camera_features.picture_sizes.get(0).supports_burst = false;
 
@@ -2579,7 +2579,7 @@ public class CameraController2 extends CameraController {
         for (Range<Integer> r : characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES)) {
             ae_fps_ranges.add(new int[] {r.getLower(), r.getUpper()});
         }
-        Collections.sort(ae_fps_ranges, new CameraController.RangeSorter());
+        Collections.sort(ae_fps_ranges, new RangeSorter());
         if( MyDebug.LOG ) {
             Log.d(TAG, "Supported AE video fps ranges: ");
             for (int[] f : ae_fps_ranges) {
@@ -2606,14 +2606,14 @@ public class CameraController2 extends CameraController {
                 int  max_fps = (int)((1.0 / mfd) * 1000000000L);
                 ArrayList<int[]> fr = new ArrayList<>();
                 fr.add(new int[] {min_fps, max_fps});
-                CameraController.Size normal_video_size = new CameraController.Size(camera_size.getWidth(), camera_size.getHeight(), fr, false);
+                Size normal_video_size = new Size(camera_size.getWidth(), camera_size.getHeight(), fr, false);
                 camera_features.video_sizes.add(normal_video_size);
                 if( MyDebug.LOG ) {
                     Log.d(TAG, "normal video size: " + normal_video_size);
                 }
             }
         }
-        Collections.sort(camera_features.video_sizes, new CameraController.SizeSorter());
+        Collections.sort(camera_features.video_sizes, new SizeSorter());
 
         if( capabilities_high_speed_video ) {
             hs_fps_ranges = new ArrayList<>();
@@ -2622,7 +2622,7 @@ public class CameraController2 extends CameraController {
             for (Range<Integer> r : configs.getHighSpeedVideoFpsRanges()) {
                 hs_fps_ranges.add(new int[] {r.getLower(), r.getUpper()});
             }
-            Collections.sort(hs_fps_ranges, new CameraController.RangeSorter());
+            Collections.sort(hs_fps_ranges, new RangeSorter());
             if( MyDebug.LOG ) {
                 Log.d(TAG, "Supported high speed video fps ranges: ");
                 for (int[] f : hs_fps_ranges) {
@@ -2639,13 +2639,13 @@ public class CameraController2 extends CameraController {
                 }
                 if (camera_size.getWidth() > 4096 || camera_size.getHeight() > 2160)
                     continue; // just in case? see above
-                CameraController.Size hs_video_size = new CameraController.Size(camera_size.getWidth(), camera_size.getHeight(), fr, true);
+                Size hs_video_size = new Size(camera_size.getWidth(), camera_size.getHeight(), fr, true);
                 if (MyDebug.LOG) {
                     Log.d(TAG, "high speed video size: " + hs_video_size);
                 }
                 camera_features.video_sizes_high_speed.add(hs_video_size);
             }
-            Collections.sort(camera_features.video_sizes_high_speed, new CameraController.SizeSorter());
+            Collections.sort(camera_features.video_sizes_high_speed, new SizeSorter());
         }
 
         android.util.Size [] camera_preview_sizes = configs.getOutputSizes(SurfaceTexture.class);
@@ -2656,7 +2656,7 @@ public class CameraController2 extends CameraController {
             Display display = activity.getWindowManager().getDefaultDisplay();
             display.getRealSize(display_size);
             // getRealSize() is adjusted based on the current rotation, so should already be landscape format, but it
-            // would be good to not assume Open Camera runs in landscape mode (if we ever ran in portrait mode,
+            // would be good to not assume SmatCam++ runs in landscape mode (if we ever ran in portrait mode,
             // we'd still want display_size.x > display_size.y as preview resolutions also have width > height)
             if( display_size.x < display_size.y ) {
                 //noinspection SuspiciousNameCombination
@@ -2679,7 +2679,7 @@ public class CameraController2 extends CameraController {
                     // Google Camera filters anything larger than height 1080, with a todo saying to use device's measurements
                     continue;
                 }
-                camera_features.preview_sizes.add(new CameraController.Size(camera_size.getWidth(), camera_size.getHeight()));
+                camera_features.preview_sizes.add(new Size(camera_size.getWidth(), camera_size.getHeight()));
             }
         }
 
@@ -4849,9 +4849,9 @@ public class CameraController2 extends CameraController {
         return new Area(area_rect, metering_rectangle.getMeteringWeight());
     }
     
-    private CameraController.Face convertFromCameraFace(Rect sensor_rect, android.hardware.camera2.params.Face camera2_face) {
+    private Face convertFromCameraFace(Rect sensor_rect, android.hardware.camera2.params.Face camera2_face) {
         Rect area_rect = convertRectFromCamera2(sensor_rect, camera2_face.getBounds());
-        return new CameraController.Face(camera2_face.getScore(), area_rect);
+        return new Face(camera2_face.getScore(), area_rect);
     }
 
     @Override
@@ -4867,7 +4867,7 @@ public class CameraController2 extends CameraController {
             has_focus = true;
             camera_settings.af_regions = new MeteringRectangle[areas.size()];
             int i = 0;
-            for(CameraController.Area area : areas) {
+            for(Area area : areas) {
                 camera_settings.af_regions[i++] = convertAreaToMeteringRectangle(sensor_rect, area);
             }
             camera_settings.setAFRegions(previewBuilder);
@@ -4878,7 +4878,7 @@ public class CameraController2 extends CameraController {
             has_metering = true;
             camera_settings.ae_regions = new MeteringRectangle[areas.size()];
             int i = 0;
-            for(CameraController.Area area : areas) {
+            for(Area area : areas) {
                 camera_settings.ae_regions[i++] = convertAreaToMeteringRectangle(sensor_rect, area);
             }
             camera_settings.setAERegions(previewBuilder);
@@ -5006,6 +5006,11 @@ public class CameraController2 extends CameraController {
         if( focus_mode == CaptureRequest.CONTROL_AF_MODE_AUTO || focus_mode == CaptureRequest.CONTROL_AF_MODE_MACRO )
             return true;
         return false;
+    }
+
+    @Override
+    public boolean supportsMetering() {
+        return characteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AE) > 0;
     }
 
     @Override
@@ -5641,7 +5646,7 @@ public class CameraController2 extends CameraController {
                 Log.d(TAG, "focus mode: " + (focus_mode == null ? "null" : focus_mode));
             if( focus_mode == null ) {
                 // we preserve the old Camera API where calling autoFocus() on a device without autofocus immediately calls the callback
-                // (unclear if Open Camera needs this, but just to be safe and consistent between camera APIs)
+                // (unclear if SmatCam++ needs this, but just to be safe and consistent between camera APIs)
                 if( MyDebug.LOG )
                     Log.d(TAG, "no focus mode");
                 cb.onAutoFocus(true);
@@ -5959,7 +5964,7 @@ public class CameraController2 extends CameraController {
                 }
                 //stillBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                 //stillBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
-                if( Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O ) {
+                if( Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ) {
                     // unclear why we wouldn't want to request ZSL
                     // this is also required to enable HDR+ on Google Pixel devices when using Camera2: https://opensource.google.com/projects/pixelvisualcorecamera
                     stillBuilder.set(CaptureRequest.CONTROL_ENABLE_ZSL, true);
@@ -8019,7 +8024,7 @@ public class CameraController2 extends CameraController {
                         }
                         else {
                             last_faces_detected = camera_faces.length;
-                            CameraController.Face [] faces = new CameraController.Face[camera_faces.length];
+                            Face [] faces = new Face[camera_faces.length];
                             for(int i=0;i<camera_faces.length;i++) {
                                 faces[i] = convertFromCameraFace(sensor_rect, camera_faces[i]);
                             }

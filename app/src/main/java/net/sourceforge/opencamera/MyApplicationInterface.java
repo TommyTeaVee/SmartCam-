@@ -1153,7 +1153,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
 
     @Override
     public long getTimerPref() {
-        if( getPhotoMode() == MyApplicationInterface.PhotoMode.Panorama )
+        if( getPhotoMode() == PhotoMode.Panorama )
             return 0; // don't support timer with panorama
         String timer_value = sharedPreferences.getString(PreferenceKeys.TimerPreferenceKey, "0");
         long timer_delay;
@@ -1171,7 +1171,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
 
     @Override
     public String getRepeatPref() {
-        if( getPhotoMode() == MyApplicationInterface.PhotoMode.Panorama )
+        if( getPhotoMode() == PhotoMode.Panorama )
             return "1"; // don't support repeat with panorama
         return sharedPreferences.getString(PreferenceKeys.RepeatModePreferenceKey, "1");
     }
@@ -1344,7 +1344,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
             }
             else if( main_activity.getPreview().supportsBurst() && this.isCameraBurstPref() ) {
                 if( this.getBurstForNoiseReduction() ) {
-                    if( this.getNRModePref() == ApplicationInterface.NRModePref.NRMODE_LOW_LIGHT ) {
+                    if( this.getNRModePref() == NRModePref.NRMODE_LOW_LIGHT ) {
                         n_jpegs = CameraController.N_IMAGES_NR_DARK_LOW_LIGHT;
                     }
                     else {
@@ -2052,7 +2052,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
                     if( store_location && !preference_stamp_geo_address.equals("preference_stamp_geo_address_no") ) {
                         // try to find an address
                         if( main_activity.isAppPaused() ) {
-                            // seems safer to not try to initiate potential network connections (via geocoder) if Open Camera
+                            // seems safer to not try to initiate potential network connections (via geocoder) if SmatCam++
                             // is paused - this shouldn't happen, since we stop video when paused, but just to be safe
                             if( MyDebug.LOG )
                                 Log.d(TAG, "don't call geocoder for video subtitles  as app is paused?!");
@@ -2271,7 +2271,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
         }
         final VideoMethod video_method = this.createOutputVideoMethod();
         boolean dategeo_subtitles = getVideoSubtitlePref(video_method).equals("preference_video_subtitle_yes");
-        if( dategeo_subtitles && video_method != ApplicationInterface.VideoMethod.URI ) {
+        if( dategeo_subtitles && video_method != VideoMethod.URI ) {
             startVideoSubtitlesTask(video_method);
         }
     }
@@ -2692,7 +2692,7 @@ public class MyApplicationInterface extends BasicApplicationInterface {
             boolean do_in_background = saveInBackground(image_capture_intent);
             imageSaver.finishImageBatch(do_in_background);
         }
-        else if( photo_mode == MyApplicationInterface.PhotoMode.Panorama && gyroSensor.isRecording() ) {
+        else if( photo_mode == PhotoMode.Panorama && gyroSensor.isRecording() ) {
             if( panorama_pic_accepted ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "set next panorama point");

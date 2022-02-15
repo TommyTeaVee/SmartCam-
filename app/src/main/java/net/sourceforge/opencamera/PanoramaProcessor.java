@@ -2651,7 +2651,7 @@ public class PanoramaProcessor {
                 if( MyDebug.LOG )
                     Log.d(TAG, "### time before auto-alignment for " + i + "th bitmap: " + (System.currentTimeMillis() - time_s));
                 if( use_align_by_feature ) {
-                    PanoramaProcessor.AutoAlignmentByFeatureResult res = autoAlignmentByFeature(alignment_bitmaps.get(0).getWidth(), alignment_bitmaps.get(0).getHeight(), alignment_bitmaps, i);
+                    AutoAlignmentByFeatureResult res = autoAlignmentByFeature(alignment_bitmaps.get(0).getWidth(), alignment_bitmaps.get(0).getHeight(), alignment_bitmaps, i);
                     this_align_x = res.offset_x;
                     this_align_y = res.offset_y;
                     angle_z = res.rotation;

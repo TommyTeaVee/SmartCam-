@@ -329,11 +329,11 @@ public class CameraController1 extends CameraController {
         for(Camera.Size camera_size : camera_picture_sizes) {
             // we leave supports_burst as true - strictly speaking it should be false, but we'll never use a fast burst mode
             // with CameraController1 anyway
-            camera_features.picture_sizes.add(new CameraController.Size(camera_size.width, camera_size.height));
+            camera_features.picture_sizes.add(new Size(camera_size.width, camera_size.height));
         }
         // sizes are usually already sorted from high to low, but sort just in case
         // note some devices do have sizes in a not fully sorted order (e.g., Nokia 8)
-        Collections.sort(camera_features.picture_sizes, new CameraController.SizeSorter());
+        Collections.sort(camera_features.picture_sizes, new SizeSorter());
 
         //camera_features.supported_flash_modes = parameters.getSupportedFlashModes(); // Android format
         List<String> supported_flash_modes = parameters.getSupportedFlashModes(); // Android format
@@ -367,15 +367,15 @@ public class CameraController1 extends CameraController {
         camera_features.video_sizes = new ArrayList<>();
         //camera_features.video_sizes.add(new CameraController.Size(1920, 1080)); // test
         for(Camera.Size camera_size : camera_video_sizes) {
-            camera_features.video_sizes.add(new CameraController.Size(camera_size.width, camera_size.height));
+            camera_features.video_sizes.add(new Size(camera_size.width, camera_size.height));
         }
         // sizes are usually already sorted from high to low, but sort just in case
-        Collections.sort(camera_features.video_sizes, new CameraController.SizeSorter());
+        Collections.sort(camera_features.video_sizes, new SizeSorter());
 
         List<Camera.Size> camera_preview_sizes = parameters.getSupportedPreviewSizes();
         camera_features.preview_sizes = new ArrayList<>();
         for(Camera.Size camera_size : camera_preview_sizes) {
-            camera_features.preview_sizes.add(new CameraController.Size(camera_size.width, camera_size.height));
+            camera_features.preview_sizes.add(new Size(camera_size.width, camera_size.height));
         }
 
         if( MyDebug.LOG )
@@ -724,11 +724,11 @@ public class CameraController1 extends CameraController {
     }
 
     @Override
-    public CameraController.Size getPictureSize() {
+    public Size getPictureSize() {
     	/*Camera.Parameters parameters = this.getParameters();
     	Camera.Size camera_size = parameters.getPictureSize();
     	return new CameraController.Size(camera_size.width, camera_size.height);*/
-        return new CameraController.Size(picture_width, picture_height);
+        return new Size(picture_width, picture_height);
     }
 
     @Override
@@ -743,10 +743,10 @@ public class CameraController1 extends CameraController {
     }
 
     @Override
-    public CameraController.Size getPreviewSize() {
+    public Size getPreviewSize() {
         Camera.Parameters parameters = this.getParameters();
         Camera.Size camera_size = parameters.getPreviewSize();
-        return new CameraController.Size(camera_size.width, camera_size.height);
+        return new Size(camera_size.width, camera_size.height);
     }
 
     @Override
@@ -1356,9 +1356,9 @@ public class CameraController1 extends CameraController {
         sounds_enabled = enabled;
     }
 
-    public boolean setFocusAndMeteringArea(List<CameraController.Area> areas) {
+    public boolean setFocusAndMeteringArea(List<Area> areas) {
         List<Camera.Area> camera_areas = new ArrayList<>();
-        for(CameraController.Area area : areas) {
+        for(Area area : areas) {
             camera_areas.add(new Camera.Area(area.rect, area.weight));
         }
         try {
@@ -1385,6 +1385,10 @@ public class CameraController1 extends CameraController {
                 parameters.setMeteringAreas(camera_areas);
 
                 setCameraParameters(parameters);
+            }
+            else {
+                if( MyDebug.LOG )
+                    Log.d(TAG, "metering areas not supported");
             }
         }
         catch(RuntimeException e) {
@@ -1416,26 +1420,26 @@ public class CameraController1 extends CameraController {
         }
     }
 
-    public List<CameraController.Area> getFocusAreas() {
+    public List<Area> getFocusAreas() {
         Camera.Parameters parameters = this.getParameters();
         List<Camera.Area> camera_areas = parameters.getFocusAreas();
         if( camera_areas == null )
             return null;
-        List<CameraController.Area> areas = new ArrayList<>();
+        List<Area> areas = new ArrayList<>();
         for(Camera.Area camera_area : camera_areas) {
-            areas.add(new CameraController.Area(camera_area.rect, camera_area.weight));
+            areas.add(new Area(camera_area.rect, camera_area.weight));
         }
         return areas;
     }
 
-    public List<CameraController.Area> getMeteringAreas() {
+    public List<Area> getMeteringAreas() {
         Camera.Parameters parameters = this.getParameters();
         List<Camera.Area> camera_areas = parameters.getMeteringAreas();
         if( camera_areas == null )
             return null;
-        List<CameraController.Area> areas = new ArrayList<>();
+        List<Area> areas = new ArrayList<>();
         for(Camera.Area camera_area : camera_areas) {
-            areas.add(new CameraController.Area(camera_area.rect, camera_area.weight));
+            areas.add(new Area(camera_area.rect, camera_area.weight));
         }
         return areas;
     }
@@ -1450,6 +1454,19 @@ public class CameraController1 extends CameraController {
             if( focus_mode != null && ( focus_mode.equals(Camera.Parameters.FOCUS_MODE_AUTO) || focus_mode.equals(Camera.Parameters.FOCUS_MODE_MACRO) ) ) {
                 return true;
             }
+        }
+        catch(RuntimeException e) {
+            e.printStackTrace();
+            count_camera_parameters_exception++;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean supportsMetering() {
+        try {
+            Camera.Parameters parameters = this.getParameters();
+            return parameters.getMaxNumMeteringAreas() > 0;
         }
         catch(RuntimeException e) {
             e.printStackTrace();
@@ -1568,7 +1585,7 @@ public class CameraController1 extends CameraController {
         return true;
     }
 
-    public void setFaceDetectionListener(final CameraController.FaceDetectionListener listener) {
+    public void setFaceDetectionListener(final FaceDetectionListener listener) {
         class CameraFaceDetectionListener implements Camera.FaceDetectionListener {
             @Override
             public void onFaceDetection(Camera.Face[] camera_faces, Camera camera) {
@@ -1583,7 +1600,7 @@ public class CameraController1 extends CameraController {
     }
 
     @Override
-    public void autoFocus(final CameraController.AutoFocusCallback cb, boolean capture_follows_autofocus_hint) {
+    public void autoFocus(final AutoFocusCallback cb, boolean capture_follows_autofocus_hint) {
         if( MyDebug.LOG )
             Log.d(TAG, "autoFocus");
         Camera.AutoFocusCallback camera_cb = new Camera.AutoFocusCallback() {
@@ -1690,7 +1707,7 @@ public class CameraController1 extends CameraController {
         n_burst = 0;
     }
 
-    private void takePictureNow(final CameraController.PictureCallback picture, final ErrorCallback error) {
+    private void takePictureNow(final PictureCallback picture, final ErrorCallback error) {
         if( MyDebug.LOG )
             Log.d(TAG, "takePictureNow");
 
@@ -1788,7 +1805,7 @@ public class CameraController1 extends CameraController {
         }
     }
 
-    public void takePicture(final CameraController.PictureCallback picture, final ErrorCallback error) {
+    public void takePicture(final PictureCallback picture, final ErrorCallback error) {
         if( MyDebug.LOG )
             Log.d(TAG, "takePicture");
 

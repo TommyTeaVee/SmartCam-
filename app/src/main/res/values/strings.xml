@@ -905,10 +905,11 @@
         be sent to remote servers to perform speech recognition.
         \n%s</string>
 
-    <string name="preference_stamp_geo_address_summary">If possible, obtain an address from GPS locations (for photo stamp or video subtitles).
-        This option requires an Internet connection.
-        Note that if enabled, this requires that your device transmits location data across the Internet to a third party
+    <!-- beware of string being too long to display! -->
+    <string name="preference_stamp_geo_address_summary">If possible, obtain address from GPS location (for photo stamp or video subtitles).
+        Note if enabled, this requires your device transmits location data across the Internet to a third party
         in order to convert GPS coordinates to an address. See https://developer.android.com/reference/android/location/Geocoder .
+        This feature provides no guarantees on availability or accuracy. Results are a best guess, and not guaranteed to be meaningful or correct.
         \n%s</string>
 
     <string name="intro_text">Touch to focus, and press the blue camera button to take photos.
@@ -985,6 +986,8 @@
 
     <string name="array_seekbar_preference_seekbar">Seekbar to change current preference value</string>
 
+    <string name="my_edittext_preference_edittext">Edittext for current preference value</string>
+
     <!-- The following strings should not be translated (and shouldn't be included in language-specific strings.xml), in case they need updating -->
 
     <string name="preference_privacy_policy" translatable="false">Privacy policy</string>
@@ -1029,7 +1032,7 @@
 
     <string name="preference_screen_licences" translatable="false">Open Source licences</string>
     <string name="preference_licence_open_camera" translatable="false">Open Camera</string>
-    <string name="preference_licence_open_camera_text" translatable="false">Open Camera is © 2013–2021 Mark Harman, released under the GPL v3 or later. Tap here for full licence text and terms of service.</string>
+    <string name="preference_licence_open_camera_text" translatable="false">Open Camera is © 2013–2022 Mark Harman, released under the GPL v3 or later. Tap here for full licence text and terms of service.</string>
     <string name="preference_licence_androidx" translatable="false">AndroidX libraries</string>
     <string name="preference_licence_androidx_text" translatable="false">Open Camera uses the AndroidX/Jetpack libraries
         under the Apache license version 2.0. Tap here for full licence text.</string>
@@ -1047,14 +1050,10 @@
     <string name="whats_new_text" translatable="false">
         <small>[This dialog is shown when Open Camera is updated. You can disable it under
             Settings/On screen GUI/Show What\'s New dialog.]</small>
-        \n\n<b>v1.49:</b>\n
+        \n\n<b>v1.49.2:</b>\n
         <ul>
-            <li>Support for portrait and landscape system orientations.\n</li>
-            <li>Minor improvements for NR, DRO and HDR photo modes.\n</li>
-            <li>Video subtitles option now requires Settings/More camera controls/\"Storage Access Framework\" on Android 11, this is due to changes on Android 11.\n</li>
-            <li>Fixed manual white balance.\n</li>
-            <li>Fixes for Android 11.\n</li>
-            <li>Bug fixes and other improvements.\n</li>
+            <li>Fixed crash for NR photo mode on some devices since version 1.49.\n</li>
+            <li>Support for latest emoji (e.g. for custom text stamp).\n</li>
         </ul>
     </string>
 </resources>

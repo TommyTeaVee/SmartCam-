@@ -45,7 +45,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-//import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -60,7 +59,6 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-//import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
@@ -192,7 +190,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         }
     }
 
-    /** Restarts Open Camera.
+    /** Restarts SmatCam++.
      *  WARNING: Make sure that any assigned variables related to the activity, e.g., anything
      *  returned by findViewById(), is updated to the new mActivity after calling this method!
      */
@@ -517,7 +515,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         Log.d(TAG, "wait for idle sync");
         this.getInstrumentation().waitForIdleSync();
         Log.d(TAG, "done waiting for idle sync");
-        // waiting for camera to open can't be on the ui thread, as it's on the ui thread that Open Camera sets that we've opened the camera
+        // waiting for camera to open can't be on the ui thread, as it's on the ui thread that SmatCam++ sets that we've opened the camera
         waitUntilCameraOpened();
         Log.d(TAG, "3 count_cameraStartPreview: " + mPreview.count_cameraStartPreview);
         assertEquals(2, mPreview.count_cameraStartPreview);
@@ -3363,9 +3361,14 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         else {
             assertFalse(mPreview.hasFocusArea());
             assertNull(mPreview.getCameraController().getFocusAreas());
-            // we still set metering areas
-            assertNotNull(mPreview.getCameraController().getMeteringAreas());
-            assertEquals(1, mPreview.getCameraController().getMeteringAreas().size());
+            if( mPreview.getCameraController().supportsMetering() ) {
+                // we still set metering areas
+                assertNotNull(mPreview.getCameraController().getMeteringAreas());
+                assertEquals(1, mPreview.getCameraController().getMeteringAreas().size());
+            }
+            else {
+                assertNull(mPreview.getCameraController().getMeteringAreas());
+            }
         }
         String new_focus_value_ui = mPreview.getCurrentFocusValue();
         //noinspection StringEquality
@@ -3441,9 +3444,15 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
             else {
                 assertFalse(mPreview.hasFocusArea());
                 assertNull(mPreview.getCameraController().getFocusAreas());
-                // we still set metering areas
-                assertNotNull(mPreview.getCameraController().getMeteringAreas());
-                assertEquals(1, mPreview.getCameraController().getMeteringAreas().size());
+
+                if( mPreview.getCameraController().supportsMetering() ) {
+                    // we still set metering areas
+                    assertNotNull(mPreview.getCameraController().getMeteringAreas());
+                    assertEquals(1, mPreview.getCameraController().getMeteringAreas().size());
+                }
+                else {
+                    assertNull(mPreview.getCameraController().getMeteringAreas());
+                }
             }
         }
         else {
@@ -3973,6 +3982,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setToDefault();
 
         if( !mPreview.supportsRaw() ) {
+            Log.d(TAG, "test requires RAW");
             return;
         }
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mActivity);
@@ -3991,6 +4001,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setToDefault();
 
         if( !mPreview.supportsRaw() ) {
+            Log.d(TAG, "test requires RAW");
             return;
         }
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mActivity);
@@ -4017,6 +4028,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setToDefault();
 
         if( !mPreview.supportsRaw() ) {
+            Log.d(TAG, "test requires RAW");
             return;
         }
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mActivity);
@@ -4059,6 +4071,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setToDefault();
 
         if( !mPreview.supportsRaw() ) {
+            Log.d(TAG, "test requires RAW");
             return;
         }
 
@@ -4112,6 +4125,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setToDefault();
 
         if( !mPreview.supportsRaw() ) {
+            Log.d(TAG, "test requires RAW");
             return;
         }
 
@@ -4156,6 +4170,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setToDefault();
 
         if( !mPreview.supportsRaw() ) {
+            Log.d(TAG, "test requires RAW");
             return;
         }
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mActivity);
@@ -4179,6 +4194,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setToDefault();
 
         if( !mPreview.supportsRaw() ) {
+            Log.d(TAG, "test requires RAW");
             return;
         }
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(mActivity);
@@ -4203,6 +4219,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setToDefault();
 
         if( !mPreview.supportsRaw() ) {
+            Log.d(TAG, "test requires RAW");
             return;
         }
 
@@ -4220,6 +4237,8 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         subTestTakePhoto(false, false, true, true, false, false, true, false);
     }
 
+    /** We no longer run this - superseded by testTakePhotoAutoLevel etc.
+     */
     public void testTakePhotoAutoStabilise() throws InterruptedException {
         Log.d(TAG, "testTakePhotoAutoStabilise");
         setToDefault();
@@ -5456,7 +5475,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         Log.d(TAG, "after idle sync");
         assertEquals(1, mPreview.count_cameraTakePicture);
 
-        // don't need to wait until image queue empty, as Open Camera shouldn't use background thread for preview pause option
+        // don't need to wait until image queue empty, as SmatCam++ shouldn't use background thread for preview pause option
 
         Bitmap thumbnail = mActivity.gallery_bitmap;
         assertNotNull(thumbnail);
@@ -5613,7 +5632,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         Log.d(TAG, "count_cameraTakePicture: " + mPreview.count_cameraTakePicture);
         assertEquals(1, mPreview.count_cameraTakePicture);
 
-        // don't need to wait until image queue empty, as Open Camera shouldn't use background thread for preview pause option
+        // don't need to wait until image queue empty, as SmatCam++ shouldn't use background thread for preview pause option
 
         Bitmap thumbnail = mActivity.gallery_bitmap;
         assertNotNull(thumbnail);
@@ -7401,7 +7420,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         subTestTakeVideo(false, true, false, false, null, 5000, false, 0);
     }
 
-    /** Tests starting and stopping video quickly, to simulate failing to create a video (but needs Open Camera to delete
+    /** Tests starting and stopping video quickly, to simulate failing to create a video (but needs SmatCam++ to delete
      *  the corrupt resultant video).
      */
     public void testTakeVideoQuick() throws InterruptedException {
@@ -7411,7 +7430,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         mPreview.test_runtime_on_video_stop = true; // as RuntimeException on short delay doesn't seem to occur on Galaxy S10e at least, for 500ms delay
 
-        // still need a short delay (at least 500ms, otherwise Open Camera will ignore the repeated stop)
+        // still need a short delay (at least 500ms, otherwise SmatCam++ will ignore the repeated stop)
         subTestTakeVideo(false, false, false, false, null, 500, false, 0);
     }
 
@@ -7434,7 +7453,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
         mPreview.test_runtime_on_video_stop = true; // as RuntimeException on short delay doesn't seem to occur on Galaxy S10e at least, for 500ms delay
 
-        // still need a short delay (at least 500ms, otherwise Open Camera will ignore the repeated stop)
+        // still need a short delay (at least 500ms, otherwise SmatCam++ will ignore the repeated stop)
         subTestTakeVideo(false, false, false, false, null, 500, false, 0);
     }
 
@@ -8418,7 +8437,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
                 });
                 // need to wait for UI code to finish before leaving
                 this.getInstrumentation().waitForIdleSync();
-                Thread.sleep(500);
+                Thread.sleep(1000); // need at least 1000ms for Nexus 7
             }
             else {
                 View popupButton = mActivity.findViewById(net.sourceforge.opencamera.R.id.popup);
@@ -11761,6 +11780,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setToDefault();
 
         if( !mActivity.supportsFocusBracketing() ) {
+            Log.d(TAG, "test requires focus bracketing");
             return;
         }
 
@@ -11807,6 +11827,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setToDefault();
 
         if( !mActivity.supportsFocusBracketing() ) {
+            Log.d(TAG, "test requires focus bracketing");
             return;
         }
 
@@ -11859,6 +11880,7 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setToDefault();
 
         if( !mActivity.supportsFocusBracketing() ) {
+            Log.d(TAG, "test requires focus bracketing");
             return;
         }
 
@@ -11931,9 +11953,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setToDefault();
 
         if( !mActivity.supportsFocusBracketing() ) {
+            Log.d(TAG, "test requires focus bracketing");
             return;
         }
         if( !mPreview.supportsRaw() ) {
+            Log.d(TAG, "test requires RAW");
             return;
         }
 
@@ -11981,9 +12005,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         setToDefault();
 
         if( !mActivity.supportsFocusBracketing() ) {
+            Log.d(TAG, "test requires focus bracketing");
             return;
         }
         if( !mPreview.supportsRaw() ) {
+            Log.d(TAG, "test requires RAW");
             return;
         }
 

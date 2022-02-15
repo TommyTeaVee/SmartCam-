@@ -53,7 +53,6 @@ import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.KeyguardManager;
@@ -81,6 +80,7 @@ import android.view.Display;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.OrientationEventListener;
@@ -97,9 +97,11 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.ZoomControls;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 /** The main Activity for Open Camera.
  */
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     private static int activity_count = 0;
@@ -573,7 +575,7 @@ public class MainActivity extends Activity {
                     // E.g., we have a "What's New" for 1.44 (64), but then push out a quick fix for 1.44.1 (65). We don't want to
                     // show the dialog again to people who already received 1.44 (64), but we still want to show the dialog to people
                     // upgrading from earlier versions.
-                    int whats_new_version = 81; // 1.49
+                    int whats_new_version = 83; // 1.49.2
                     whats_new_version = Math.min(whats_new_version, version_code); // whats_new_version should always be <= version_code, but just in case!
                     if( MyDebug.LOG ) {
                         Log.d(TAG, "whats_new_version: " + whats_new_version);
@@ -1658,9 +1660,9 @@ public class MainActivity extends Activity {
      */
     public static int getRotationFromSystemOrientation(SystemOrientation system_orientation) {
         int rotation;
-        if( system_orientation == MainActivity.SystemOrientation.PORTRAIT )
+        if( system_orientation == SystemOrientation.PORTRAIT )
             rotation = 270;
-        else if( system_orientation == MainActivity.SystemOrientation.REVERSE_LANDSCAPE )
+        else if( system_orientation == SystemOrientation.REVERSE_LANDSCAPE )
             rotation = 180;
         else
             rotation = 0;
@@ -1826,11 +1828,12 @@ public class MainActivity extends Activity {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
         alertDialog.setTitle(R.string.preference_textstamp);
 
-        final EditText editText = new EditText(this);
+        final View dialog_view = LayoutInflater.from(this).inflate(R.layout.alertdialog_edittext, null);
+        final EditText editText = dialog_view.findViewById(R.id.edit_text);
         // set hint instead of content description for EditText, see https://support.google.com/accessibility/android/answer/6378120
         editText.setHint(getResources().getString(R.string.preference_textstamp));
         editText.setText(applicationInterface.getTextStampPref());
-        alertDialog.setView(editText);
+        alertDialog.setView(dialog_view);
         alertDialog.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
@@ -2762,6 +2765,10 @@ public class MainActivity extends Activity {
                 Log.d(TAG, "scene mode was: " + scene_mode);
             String key = PreferenceKeys.SceneModePreferenceKey;
             String value = sharedPreferences.getString(key, CameraController.SCENE_MODE_DEFAULT);
+            // n.b., on Android 4.3 emulator, scene mode is returned as null (this may be because it doesn't support
+            // scene modes at all) - treat this the same as auto
+            if( scene_mode == null )
+                scene_mode = CameraController.SCENE_MODE_DEFAULT;
             if( !value.equals(scene_mode) ) {
                 if( MyDebug.LOG )
                     Log.d(TAG, "scene mode changed to: " + value);
@@ -4087,6 +4094,9 @@ public class MainActivity extends Activity {
     public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
         if( MyDebug.LOG )
             Log.d(TAG, "onActivityResult: " + requestCode);
+
+        super.onActivityResult(requestCode, resultCode, resultData);
+
         switch( requestCode ) {
             case CHOOSE_SAVE_FOLDER_SAF_CODE:
                 if( resultCode == RESULT_OK && resultData != null ) {
@@ -4321,7 +4331,9 @@ public class MainActivity extends Activity {
         final AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
         alertDialog.setTitle(R.string.preference_save_location);
 
-        final EditText editText = new EditText(this);
+        final View dialog_view = LayoutInflater.from(this).inflate(R.layout.alertdialog_edittext, null);
+        final EditText editText = dialog_view.findViewById(R.id.edit_text);
+
         // set hint instead of content description for EditText, see https://support.google.com/accessibility/android/answer/6378120
         editText.setHint(getResources().getString(R.string.preference_save_location));
         editText.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -4345,7 +4357,8 @@ public class MainActivity extends Activity {
         };
         editText.setFilters(new InputFilter[]{filter});
 
-        alertDialog.setView(editText);
+        alertDialog.setView(dialog_view);
+
         alertDialog.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
@@ -5715,8 +5728,12 @@ public class MainActivity extends Activity {
         if( MyDebug.LOG )
             Log.d(TAG, "initLocation");
         if( app_is_paused ) {
-            Log.e(TAG, "initLocation: app is paused!");
+            if( MyDebug.LOG )
+                Log.d(TAG, "initLocation: app is paused!");
             // we shouldn't need this (as we only call initLocation() when active), but just in case we end up here after onPause...
+            // in fact this happens when we need to grant permission for location - the call to initLocation() from
+            // MainActivity.onRequestPermissionsResult()->PermissionsHandler.onRequestPermissionsResult() will be when the application
+            // is still paused - so we won't do anything here, but instead initLocation() will be called after when resuming.
         }
         else if( camera_in_background ) {
             if( MyDebug.LOG )
@@ -5751,6 +5768,7 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if( MyDebug.LOG )
             Log.d(TAG, "onRequestPermissionsResult: requestCode " + requestCode);
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         permissionHandler.onRequestPermissionsResult(requestCode, grantResults);
     }
 
